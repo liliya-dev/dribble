@@ -33,7 +33,7 @@ const { parse } = require('node-html-parser');
   const { copyFileSync } = require('fs');
 const puppeteer = require('puppeteer');
   async function getTokoPedia(){
-      const browser = await puppeteer.launch({ headless: false, slowMo: 250, }); // for test disable the headlels mode,
+      const browser = await puppeteer.launch({ headless: true, slowMo: 250, }); // for test disable the headlels mode,
       const page = await browser.newPage();
 
       // await page.setViewport({ width: 1000, height: 9926 });
