@@ -1,6 +1,9 @@
 const schedule = require('node-schedule');
 const { MongoClient } = require('mongodb');
 const { parse } = require('node-html-parser');
+const { TextEncoder, TextDecoder } = require("util");
+var util= require('util');
+var encoder = new util.TextEncoder('utf-8');
 require('dotenv').config();
 const puppeteer = require('puppeteer');
 
