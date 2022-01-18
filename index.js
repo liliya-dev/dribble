@@ -1,16 +1,13 @@
 const schedule = require('node-schedule');
 const { MongoClient } = require('mongodb');
 const { parse } = require('node-html-parser');
-const { TextEncoder, TextDecoder } = require("util");
-var util= require('util');
-var encoder = new util.TextEncoder('utf-8');
 require('dotenv').config();
 const puppeteer = require('puppeteer');
 
 async function getTokoPedia(){
     const browser = await puppeteer.launch({ headless: true, slowMo: 250, args: ['--no-sandbox', '--disable-setuid-sandbox']}); // for test disable the headlels mode,
     const page = await browser.newPage();
-    await page.goto("https://dribbble.com/shots/popular",{ waitUntil: 'networkidle2' });
+    await page.goto("https://dribbble.com/shots/popular",{waitUntil: 'networkidle2'});
     await autoScroll(page);
 
     const html = await page.evaluate(() => document.querySelector('*').outerHTML);
@@ -56,9 +53,9 @@ async function getTokoPedia(){
 
 const putNewValuesToDatabase = async ({ info, time }) => {
   try {
-    const client = new MongoClient('mongodb+srv://admin:Halolab2021@cluster0.ou9dm.mongodb.net/dribble?retryWrites=true&w=majority', { useNewUrlParser: true , useUnifiedTopology: true });
+    const client = new MongoClient(process.env.MONGO_URI, { useNewUrlParser: true , useUnifiedTopology: true });
     await client.connect();
-    const database = client.db('dribble');
+    const database = client.db(process.env.MONGO_DATABASE_NAME);
     const collection = database.collection('shots');
     for (let j = 0; j < info.length; j++) {
       const { viewsCount, likesCount, i, id, title, } = info[j];
@@ -84,7 +81,7 @@ const putNewValuesToDatabase = async ({ info, time }) => {
 }
 
 
-schedule.scheduleJob('55 * * * * *',  async function(){
+schedule.scheduleJob('34 * * * *',  async function(){
   const { time, info } = await getTokoPedia();
 
   const regex = new RegExp('Halo Lab', 'gim');
