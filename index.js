@@ -4,7 +4,7 @@ const { parse } = require('node-html-parser');
 require('dotenv').config();
 const puppeteer = require('puppeteer');
 
-async function getTokoPedia(){
+async function getParsedDaraFromBRowser(){
     const browser = await puppeteer.launch({ headless: true, slowMo: 250, args: ['--no-sandbox', '--disable-setuid-sandbox']}); // for test disable the headlels mode,
     const page = await browser.newPage();
     await page.goto("https://dribbble.com/shots/popular",{waitUntil: 'networkidle2'});
@@ -31,23 +31,23 @@ async function getTokoPedia(){
     return { info, time }
 } 
 
-  async function autoScroll(page){
-    await page.evaluate(async () => {
-        await new Promise((resolve, reject) => {
-            var totalHeight = 0;
-            var distance = 100;
-            var timer = setInterval(() => {
-                var scrollHeight = document.body.scrollHeight;
-                window.scrollBy(0, distance);
-                totalHeight += distance;
+async function autoScroll(page){
+  await page.evaluate(async () => {
+    await new Promise((resolve, reject) => {
+      let totalHeight = 0;
+      const distance = 100;
+      const timer = setInterval(() => {
+          let scrollHeight = document.body.scrollHeight;
+          window.scrollBy(0, distance);
+          totalHeight += distance;
 
-                if(totalHeight >= scrollHeight){
-                    clearInterval(timer);
-                    resolve();
-                }
-            }, 100);
-        });
+          if (totalHeight >= scrollHeight){
+            clearInterval(timer);
+            resolve();
+          }
+      }, 100);
     });
+  });
 }
 
 
@@ -57,6 +57,7 @@ const putNewValuesToDatabase = async ({ info, time }) => {
     await client.connect();
     const database = client.db(process.env.MONGO_DATABASE_NAME);
     const collection = database.collection('shots');
+
     for (let j = 0; j < info.length; j++) {
       const { viewsCount, likesCount, i, id, title, } = info[j];
 
@@ -73,14 +74,15 @@ const putNewValuesToDatabase = async ({ info, time }) => {
         )
       }
     }
+
+    client.close();
   } catch(error) {
     console.log(error)
   }
 }
 
-
 schedule.scheduleJob('47 * * * *',  async function(){
-  const { time, info } = await getTokoPedia();
+  const { time, info } = await getParsedDaraFromBRowser();
 
   const regex = new RegExp('Halo Lab', 'gim');
   const haloInfo  = info.filter(item => regex.test(item.company));
