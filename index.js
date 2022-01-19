@@ -53,7 +53,7 @@ async function getTokoPedia(){
 
 const putNewValuesToDatabase = async ({ info, time }) => {
   try {
-    const client = new MongoClient(process.env.MONGO_URI, { useNewUrlParser: true , useUnifiedTopology: true });
+    const client = new MongoClient(encodeURI(process.env.MONGO_URI), { useNewUrlParser: true , useUnifiedTopology: true });
     await client.connect();
     const database = client.db(process.env.MONGO_DATABASE_NAME);
     const collection = database.collection('shots');
