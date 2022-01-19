@@ -71,9 +71,7 @@ const putNewValuesToDatabase = async ({ info, time }) => {
             shots: [...selectedDataFrom[0].shots, { position: i, likesCount, viewsCount, time }] 
           }}
         )
-        console.log({selectedDataFrom})
       }
-      // console.log({ selectedDataFrom })
     }
   } catch(error) {
     console.log(error)
@@ -88,8 +86,7 @@ schedule.scheduleJob('47 * * * *',  async function(){
   const haloInfo  = info.filter(item => regex.test(item.company));
   const haloInfoProcessed  = haloInfo.map(item => {
     const viewsNumberK = item.viewsCount.split('k')[0];
-    const viewsNumber = viewsNumberK.length === item.viewsCount.length ? +viewsNumberK : +viewsNumberK * 1000
-    console.log({viewsNumber})
+    const viewsNumber = viewsNumberK.length === item.viewsCount.length ? +viewsNumberK : +viewsNumberK * 1000;
     return {
       ...item,
       viewsCount: viewsNumber
