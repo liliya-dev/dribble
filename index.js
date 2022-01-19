@@ -81,7 +81,7 @@ const putNewValuesToDatabase = async ({ info, time }) => {
 }
 
 
-schedule.scheduleJob('34 * * * *',  async function(){
+schedule.scheduleJob('47 * * * *',  async function(){
   const { time, info } = await getTokoPedia();
 
   const regex = new RegExp('Halo Lab', 'gim');
