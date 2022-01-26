@@ -1,6 +1,7 @@
 const schedule = require('node-schedule');
 const { MongoClient } = require('mongodb');
 const { parse } = require('node-html-parser');
+const fetch = require('node-fetch')
 require('dotenv').config();
 const puppeteer = require('puppeteer');
 
@@ -64,7 +65,9 @@ const putNewValuesToDatabase = async ({ info, time }) => {
       const cursorFrom = await collection.find({ id });
       const selectedDataFrom = await cursorFrom.toArray();
       if (selectedDataFrom.length === 0) {
-        await collection.insertOne({ id, title, shots: [{ position: i, likesCount, viewsCount, time }]})
+        const { published_at } = await getShotPublishInfo({ id })
+        console.log({ time: Date.now(), published_at })
+        await collection.insertOne({ id, title, published_at, shots: [{ position: i, likesCount, viewsCount, time }]})
       } else {
         await collection.updateOne(
           { id }, 
@@ -81,7 +84,7 @@ const putNewValuesToDatabase = async ({ info, time }) => {
   }
 }
 
-schedule.scheduleJob('47 * * * *',  async function(){
+schedule.scheduleJob("*/2 * * * *",  async function(){
   const { time, info } = await getParsedDaraFromBRowser();
 
   const regex = new RegExp('Halo Lab', 'gim');
@@ -95,5 +98,26 @@ schedule.scheduleJob('47 * * * *',  async function(){
     }
   });
   if (haloInfo.length === 0) return
-  await putNewValuesToDatabase({ info: haloInfoProcessed, time})
+  await putNewValuesToDatabase({ info: haloInfoProcessed, time })
 });
+
+const getShotPublishInfo = async ({ id }) => {
+  const response = await fetch('http://api.dribbble.com/v2/user/shots?page=1&per_page=100', {
+    headers: {
+      'Authorization': `Bearer ${process.env.DRIBBBLE_TOKEN}`
+    }
+  })
+  const shotsList = await response.json();
+  const shot = shotsList.find(shot => `${shot.id}` === `${id}`)
+  // const data = await fetch('http://api.dribbble.com/v2/user/shots?page=1&per_page=100', {
+  //   headers: {
+  //     'Authorization': `Bearer ${process.env.DRIBBBLE_TOKEN}`
+  //   }
+  // }).then(response => response.json())
+  //   .then(data => {
+  //     const shot = shotsList.find(shot => `${shot.id}` === `${id}`)
+  //   });
+  return {
+    published_at: shot ? shot.published_at : 0
+  }
+}
