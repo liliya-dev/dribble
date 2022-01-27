@@ -102,22 +102,39 @@ schedule.scheduleJob("*/2 * * * *",  async function(){
 });
 
 const getShotPublishInfo = async ({ id }) => {
-  const response = await fetch('http://api.dribbble.com/v2/user/shots?page=1&per_page=100', {
-    headers: {
-      'Authorization': `Bearer ${process.env.DRIBBBLE_TOKEN}`
+  const sendRequestDribble = async ({ page, per_page }) => {
+    const response = await fetch(`http://api.dribbble.com/v2/user/shots?page=${page}&per_page=${per_page}`, {
+      headers: {
+        'Authorization': `Bearer ${process.env.DRIBBBLE_TOKEN}`
+      }
+    })
+    const shotsList = await response.json();
+    const shot = shotsList.find(shot => `${shot.id}` === `${id}`)
+    if (!shot) {
+      return { shot: null, shotsLength: shotsList.length }
+    } else {
+      return { shot }
     }
-  })
-  const shotsList = await response.json();
-  const shot = shotsList.find(shot => `${shot.id}` === `${id}`)
-  // const data = await fetch('http://api.dribbble.com/v2/user/shots?page=1&per_page=100', {
-  //   headers: {
-  //     'Authorization': `Bearer ${process.env.DRIBBBLE_TOKEN}`
-  //   }
-  // }).then(response => response.json())
-  //   .then(data => {
-  //     const shot = shotsList.find(shot => `${shot.id}` === `${id}`)
-  //   });
-  return {
-    published_at: shot ? shot.published_at : 0
   }
+
+  let published_at = 0;
+  let stopped = false;
+  const perPage = 100;
+  let pageCounter = 1;
+        
+  while(!stopped) {
+      let { shot, shotsLength } = await sendRequestDribble({ page: pageCounter, per_page: perPage });
+      if (shot) {
+        published_at = shot.published_at;
+        stopped = true;
+      } else {
+        if (shotsLength < perPage) {
+          stopped = true;
+        } else {
+          pageCounter = pageCounter + 1;
+        }
+      }
+  }
+
+  return { published_at, pageCounter }
 }
