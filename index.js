@@ -14,7 +14,7 @@ async function getParsedDaraFromBRowser(){
     const html = await page.evaluate(() => document.querySelector('*').outerHTML);
     const root = parse(html);
     const items = root.querySelectorAll('.shot-thumbnail-container');
-    const info = items.map((item, index) => {
+  const info = items.map((item, index) => {
       const company = item.querySelector('.display-name').childNodes[0]._rawText;
       const views = item.querySelector('.js-shot-views-count');
       const viewsCount = views ? views.childNodes[0]._rawText : undefined
@@ -22,8 +22,11 @@ async function getParsedDaraFromBRowser(){
       const likesCount = likes ? likes.childNodes[0]._rawText : undefined
       const title = item.querySelector('.shot-title');
       const titleProcessed = title ? title.childNodes[0]._rawText : 'boosted';
+      const image = item.querySelector('.js-thumbnail-placeholder.shot-thumbnail-placeholder > img');
+      const imageSrc = (image && image._attrs) ? image._attrs.src : null;
+
       return {
-        company, viewsCount, likesCount, i: index+1, id: item._attrs['data-thumbnail-id'], title: titleProcessed
+        company, viewsCount, likesCount, i: index+1, id: item._attrs['data-thumbnail-id'], title: titleProcessed, imageSrc
       }
     })
     const time = Date.now();
@@ -60,14 +63,14 @@ const putNewValuesToDatabase = async ({ info, time }) => {
     const collection = database.collection('shots');
 
     for (let j = 0; j < info.length; j++) {
-      const { viewsCount, likesCount, i, id, title, } = info[j];
+      const { viewsCount, likesCount, i, id, title, imageSrc } = info[j];
 
       const cursorFrom = await collection.find({ id });
       const selectedDataFrom = await cursorFrom.toArray();
       if (selectedDataFrom.length === 0) {
         const { published_at } = await getShotPublishInfo({ id })
         console.log({ time: Date.now(), published_at })
-        await collection.insertOne({ id, title, published_at, shots: [{ position: i, likesCount, viewsCount, time }]})
+        await collection.insertOne({ id, title, published_at, imageSrc, shots: [{ position: i, likesCount, viewsCount, time }]})
       } else {
         await collection.updateOne(
           { id }, 
@@ -103,7 +106,7 @@ schedule.scheduleJob("*/2 * * * *",  async function(){
 
 const getShotPublishInfo = async ({ id }) => {
   const sendRequestDribble = async ({ page, per_page }) => {
-    const response = await fetch(`http://api.dribbble.com/v2/user/shots?page=${page}&per_page=${per_page}`, {
+    const response = await fetch(`${process.env.DRIBBBLE_API_ENDPOINT}/user/shots?page=${page}&per_page=${per_page}`, {
       headers: {
         'Authorization': `Bearer ${process.env.DRIBBBLE_TOKEN}`
       }
@@ -138,3 +141,4 @@ const getShotPublishInfo = async ({ id }) => {
 
   return { published_at, pageCounter }
 }
+
