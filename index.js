@@ -33,7 +33,7 @@ async function getParsedDaraFromBRowser() {
       ".js-thumbnail-placeholder.shot-thumbnail-placeholder > img"
     );
     const imageSrc = image && image._attrs ? image._attrs.src : null;
-
+    
     return {
       company,
       viewsCount,
@@ -64,7 +64,7 @@ async function autoScroll(page) {
           clearInterval(timer);
           resolve();
         }
-      }, 100);
+      }, 300);
     });
   });
 }
@@ -118,7 +118,7 @@ const putNewValuesToDatabase = async ({ info, time }) => {
 schedule.scheduleJob("*/2 * * * *", async function () {
   logger.info("Job started");
   const { time, info } = await getParsedDaraFromBRowser();
-
+  console.log(info.map(item => item.company))
   const regex = new RegExp("Halo Lab", "gim");
   const haloInfo = info.filter((item) => regex.test(item.company));
   const haloInfoProcessed = haloInfo.map((item) => {
