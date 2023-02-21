@@ -119,7 +119,7 @@ const putNewValuesToDatabase = async ({ info, time }) => {
   }
 };
 
-schedule.scheduleJob("*/1 * * * *", async function () {
+schedule.scheduleJob("*/2 * * * *", async function () {
   logger.info("Job started");
   const { time, info } = await getParsedDaraFromBRowser();
   console.log(info.map(item => item.company))
