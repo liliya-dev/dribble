@@ -125,7 +125,7 @@ schedule.scheduleJob("*/2 * * * *", async function () {
   console.log(info.map(item => item.company))
   const regex = new RegExp("Halo Lab", "gim");
   const haloInfo = info.filter((item) => regex.test(item.company));
-  console.log({haloInfo})
+  console.log(haloInfo, "halo info")
 
   const haloInfoProcessed = haloInfo.map((item) => {
     const viewsNumberK = item.viewsCount.split("k")[0];
