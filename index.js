@@ -70,6 +70,7 @@ async function autoScroll(page) {
 }
 
 const putNewValuesToDatabase = async ({ info, time }) => {
+  console.log({info, time})
   try {
     const client = new MongoClient(encodeURI(process.env.MONGO_URI), {
       useNewUrlParser: true,
@@ -87,15 +88,17 @@ const putNewValuesToDatabase = async ({ info, time }) => {
       if (selectedDataFrom.length === 0) {
         const { published_at } = await getShotPublishInfo({ id });
         logger.info({ published_at });
-        await collection.insertOne({
+        const c = await collection.insertOne({
           id,
           title,
           published_at,
           imageSrc,
           shots: [{ position: i, likesCount, viewsCount, time }],
         });
+        console.log('created', c)
+
       } else {
-        await collection.updateOne(
+        const c = await collection.updateOne(
           { id },
           {
             $set: {
@@ -106,6 +109,7 @@ const putNewValuesToDatabase = async ({ info, time }) => {
             },
           }
         );
+        console.log('updated', c)
       }
     }
 
@@ -115,12 +119,14 @@ const putNewValuesToDatabase = async ({ info, time }) => {
   }
 };
 
-schedule.scheduleJob("*/2 * * * *", async function () {
+schedule.scheduleJob("*/1 * * * *", async function () {
   logger.info("Job started");
   const { time, info } = await getParsedDaraFromBRowser();
   console.log(info.map(item => item.company))
   const regex = new RegExp("Halo Lab", "gim");
   const haloInfo = info.filter((item) => regex.test(item.company));
+  console.log({haloInfo})
+
   const haloInfoProcessed = haloInfo.map((item) => {
     const viewsNumberK = item.viewsCount.split("k")[0];
     const viewsNumber =
